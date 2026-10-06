@@ -75,7 +75,18 @@ export default function AdminPanel() {
       await api(`/admin/listings/${id}`, { method: 'DELETE' });
       toast('Listing deleted');
       loadListings();
+      loadOverview();
     } catch { toast('Could not delete listing'); }
+  };
+
+  const deleteBusiness = async (id, name) => {
+    if (!confirm(`Delete ${name} and ALL its listings? This cannot be undone.`)) return;
+    try {
+      await api(`/admin/businesses/${id}`, { method: 'DELETE' });
+      toast('Business deleted');
+      loadBusinesses();
+      loadOverview();
+    } catch { toast('Could not delete business'); }
   };
 
   const updateOrderStatus = async (id, status) => {
@@ -136,14 +147,13 @@ export default function AdminPanel() {
       ) : tab === 'businesses' ? (
         <div className="dash-card">
           <table className="admin-table">
-            <thead><tr><th>Name</th><th>Area</th><th>Phone</th><th>Owner</th><th>Tier</th><th>Change tier</th></tr></thead>
+            <thead><tr><th>Name</th><th>Area</th><th>Phone</th><th>Tier</th><th>Change tier</th><th>Action</th></tr></thead>
             <tbody>
               {businesses.map(b => (
                 <tr key={b.id}>
                   <td><b>{b.name}</b></td>
                   <td>{b.area}</td>
                   <td>{b.phone}</td>
-                  <td>{b.profiles?.display_name || b.profiles?.phone || '—'}</td>
                   <td><span className={`badge-inline ${b.tier}`}>{TIERS[b.tier]?.label || b.tier}</span></td>
                   <td>
                     <select className="form-control" style={{ width: 'auto', fontSize: 12 }} value={b.tier} onChange={e => changeTier(b.id, e.target.value)}>
@@ -153,6 +163,7 @@ export default function AdminPanel() {
                       <option value="gold">Gold</option>
                     </select>
                   </td>
+                  <td><button className="btn btn-danger btn-sm" onClick={() => deleteBusiness(b.id, b.name)}>Delete</button></td>
                 </tr>
               ))}
             </tbody>
